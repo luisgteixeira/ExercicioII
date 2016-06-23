@@ -34,9 +34,8 @@ def main():
 	
 	while (True):
 
-		# opcao = raw_input('Digite letra do exercicio a ser executada (B ou C): ')
-		# opcao = opcao.upper()
-		opcao = 'C'
+		opcao = raw_input('Digite letra do exercicio a ser executada (B ou C): ')
+		opcao = opcao.upper()
 
 		if opcao == 'B':
 			# Letra B ------------------ #
@@ -48,8 +47,13 @@ def main():
 		elif opcao == 'C':
 			# Letra B ------------------ #
 			print '----: LETRA C :----\n'
-			valor = input('Digite um valor para Temperatura:')
+			valor = input('Digite um valor para Temperatura: ')
+			if valor < min_U or valor > max_U:
+				print 'Valor nao pertencente ao Universo de Discurso'
+				continue
+			titulo = 'Conjuntos Fuzzy ativos para Temperatura = ' + str(valor)
 			novo_grau_pertinencia = pertence_conjunto(grau_pertinencia, valor)
+			desenha_grafico(novo_grau_pertinencia)
 			# -------------------------- #
 		elif opcao == 'SAIR':
 			print 'Finalizando execucao...'
@@ -62,7 +66,7 @@ def pertinencia_A(valor):
 	if valor < 5:
 		return 1
 	elif valor >= 5 and valor < 15:
-		return (15 - valor) / 10
+		return (15.0 - valor) / 10.0
 	else:
 		return 0
 
@@ -71,9 +75,9 @@ def pertinencia_B(valor):
 	if valor < 5:
 		return 0
 	elif valor >= 5 and valor < 15:
-		return (valor - 5) / 10
+		return (valor - 5.0) / 10.0
 	elif valor >= 15 and valor <= 25:
-		return (25 - valor) / 10
+		return (25.0 - valor) / 10.0
 	else:
 		return 0
 
@@ -82,9 +86,9 @@ def pertinencia_C(valor):
 	if valor < 15:
 		return 0
 	elif valor >= 15 and valor < 25:
-		return (valor - 15) / 10
+		return (valor - 15.0) / 10.0
 	elif valor >= 25 and valor <= 35:
-		return (35 - valor) / 10
+		return (35.0 - valor) / 10.0
 	else:
 		return 0
 
@@ -93,9 +97,9 @@ def pertinencia_D(valor):
 	if valor < 25:
 		return 0
 	elif valor >= 25 and valor < 35:
-		return (valor - 25) / 10
+		return (valor - 25.0) / 10.0
 	elif valor >= 35 and valor <= 45:
-		return (45 - valor) / 10
+		return (45.0 - valor) / 10.0
 	else:
 		return 0
 
@@ -104,30 +108,59 @@ def pertinencia_E(valor):
 	if valor >= 45:
 		return 1
 	elif valor >= 35 and valor < 45:
-		return (valor - 35) / 10
+		return (valor - 35.0) / 10.0
 	else:
 		return 0
 
 
 def pertence_conjunto(grau_pertinencia, valor):
 	""
-	for i,funcao in enumerate(grau_pertinencia):
-		for i,funcao in enumerate(grau_pertinencia):
-		print universo_discurso[i]
+	novo_grau_pertinencia = []
 
-		# if min_U <= valor and max_U >= valor:
-		# 	if conjunto[0] <= valor and conjunto[1] >= valor:
-		# 		print 'Valor pertence ao Conjunto [', conjunto[0], ',', conjunto[1], ']'
-		# 	else:
-		# 		print 'Valor nao pertence ao Conjunto [', conjunto[0], ',', conjunto[1], ']'
-		# else:
-		# 	print 'Valor nao pertence ao Universo de Discurso!'
+	a = pertinencia_A(valor)
+	b = pertinencia_B(valor)
+	c = pertinencia_C(valor)
+	d = pertinencia_D(valor)
+	e = pertinencia_E(valor)
+
+	if a == 0:
+		novo_grau_pertinencia.append([])
+	else:
+		novo_grau_pertinencia.append(grau_pertinencia[0])
+
+	if b == 0:
+		novo_grau_pertinencia.append([])
+	else:
+		novo_grau_pertinencia.append(grau_pertinencia[1])
+
+	if c == 0:
+		novo_grau_pertinencia.append([])
+	else:
+		novo_grau_pertinencia.append(grau_pertinencia[2])
+
+	if d == 0:
+		novo_grau_pertinencia.append([])
+	else:
+		novo_grau_pertinencia.append(grau_pertinencia[3])
+
+	if e == 0:
+		novo_grau_pertinencia.append([])
+	else:
+		novo_grau_pertinencia.append(grau_pertinencia[4])
+
+	return novo_grau_pertinencia
 
 
 def desenha_grafico(grau_pertinencia):
+	if grau_pertinencia is None:
+		print 'Conjunto(s) vazio(s)!!'
+		return
+
 	legenda = []
 	for i,funcao in enumerate(grau_pertinencia):
-		if i == 0:
+		if not funcao:
+			continue
+		elif i == 0:
 			cor = 'red'
 			label = 'F_A -> Muito Baixa'
 		elif i == 1:
