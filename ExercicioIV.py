@@ -31,6 +31,8 @@ def main():
             print '\nINSIRA 2 CONJUNTOS FUZZY:'
             conjunto_fuzzy_1 = le_conjunto()
             conjunto_fuzzy_2 = le_conjunto()
+            print "Igualdade: " + str(igualdade(conjunto_fuzzy_1, conjunto_fuzzy_2))
+            print "Inclusao: " + str(inclusao(conjunto_fuzzy_1, conjunto_fuzzy_2))
             # ---------------------------- #
         else:
         	print 'Finalizando execucao...'
@@ -114,11 +116,14 @@ def conversao(conjunto_fuzzy):
 def igualdade(conjunto_fuzzy_1, conjunto_fuzzy_2):
     msg = ''
     grau_de_igualdade = 0.0
-    if len(conjunto_fuzzy_1) != len(conjunto_fuzzy_2):
+    lista1 = conjunto_fuzzy_1.keys()
+    lista2 = conjunto_fuzzy_2.keys()
+
+    if cmp(lista1.sort(), lista2.sort()) != 0:
         msg += 'Os conjuntos nao sao iguais e nem compartilham do mesmo Universo de Discurso.'
     else:
         # Se as classes dos 2 conjuntos sao iguais
-        if conjunto_fuzzy_1.keys().sort() == conjunto_fuzzy_2.keys().sort():
+        if cmp(lista1.sort(), lista2.sort()) == 0:
             for chave in conjunto_fuzzy_1:
                 if conjunto_fuzzy_1[chave] != conjunto_fuzzy_2[chave]:
                     if (conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave]) > grau_de_igualdade:
@@ -130,6 +135,35 @@ def igualdade(conjunto_fuzzy_1, conjunto_fuzzy_2):
                 msg += 'Os conjuntos nao sao iguais. '
 
             msg += 'Grau de igualdade = ' + str(1 - grau_de_igualdade)
+
+    return msg
+
+
+def inclusao(conjunto_fuzzy_1, conjunto_fuzzy_2):
+    min_U = min(min(conjunto_fuzzy_1.keys()), min(conjunto_fuzzy_2.keys()))
+    max_U = max(max(conjunto_fuzzy_1.keys()), max(conjunto_fuzzy_2.keys()))
+    cardinalidade = int(max_U) - int(min_U)
+    msg = ''
+    grau_de_inclusao = 0.0
+    # Preenche com grau de pertinencia igual a 0 as classes inexistentes nos conjuntos
+    for chave in range(int(min_U),int(max_U)+1):
+        if not chave in conjunto_fuzzy_1.keys():
+            conjunto_fuzzy_1[chave] = 0.0
+        if not chave in conjunto_fuzzy_2.keys():
+            conjunto_fuzzy_2[chave] = 0.0
+
+    for chave in conjunto_fuzzy_1:
+        if conjunto_fuzzy_1[chave] <= conjunto_fuzzy_2[chave]:
+            grau_de_inclusao += 1
+        else:
+            grau_de_inclusao += 1 - ( conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave] )
+
+    if grau_de_inclusao == 1.0:
+        msg += 'O conjunto 1 esta incluido no conjunto 2. '
+    else:
+        msg += 'O conjunto 1 nao esta incluido no conjunto 2. '
+
+    msg += 'Grau de inclusao = ' + str( grau_de_inclusao * (1 / cardinalidade) )
 
     return msg
 
