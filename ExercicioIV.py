@@ -1,4 +1,5 @@
 import numpy as np
+import math
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 
@@ -29,10 +30,33 @@ def main():
             # Questao 8 ------------------ #
             print '\n----: QUESTAO 8 :----'
             print '\nINSIRA 2 CONJUNTOS FUZZY:'
+            cria_universo_discurso()
             conjunto_fuzzy_1 = le_conjunto()
             conjunto_fuzzy_2 = le_conjunto()
             print "Igualdade: " + str(igualdade(conjunto_fuzzy_1, conjunto_fuzzy_2))
             print "Inclusao: " + str(inclusao(conjunto_fuzzy_1, conjunto_fuzzy_2))
+            # ---------------------------- #
+        elif opcao == '9':
+            # Questao 9 ------------------ #
+            print '\n----: QUESTAO 9 :----'
+            print '\nINSIRA 2 CONJUNTOS FUZZY:'
+            cria_universo_discurso()
+            # Cria valor de incremento de acordo com o total de pontos da discretizacao
+            pontos = 20.0
+            discretizacao = (max_U - min_U) / pontos
+            # Cria lista com 20 pontos de discretizacao no intervalo do universo de discurso
+            universo_discurso = np.arange(min_U, max_U + discretizacao, discretizacao)
+
+            print '-: F1 = (x, 1, 3, 5), funcao de pertinencia triangular :-'
+            impressao_questao_9(funcao_triangular(universo_discurso, 1.0, 3.0, 5.0))
+            print '-: F2 = (x, 1, 2, 4), funcao de pertinencia triangular :-'
+            impressao_questao_9(funcao_triangular(universo_discurso, 1.0, 2.0, 4.0))
+            print '-: F3 = (x, 1, 4, 6), funcao de pertinencia triangular :-'
+            impressao_questao_9(funcao_triangular(universo_discurso, 1.0, 4.0, 6.0))
+            print '-: F4 = (x, 3, 4, 5, 7), funcao de pertinencia trapezoidal :-'
+            impressao_questao_9(funcao_trapezoidal(universo_discurso, 3.0, 4.0, 5.0, 7.0))
+            print '-: F5 = (x, 1, 3, 2), funcao de pertinencia gaussiana :-'
+            impressao_questao_9(funcao_gaussiana(universo_discurso, 1.0, 2.0))
             # ---------------------------- #
         else:
         	print 'Finalizando execucao...'
@@ -114,39 +138,43 @@ def conversao(conjunto_fuzzy):
 
 
 def igualdade(conjunto_fuzzy_1, conjunto_fuzzy_2):
+    global min_U, max_U
+
     msg = ''
     grau_de_igualdade = 0.0
-    lista1 = conjunto_fuzzy_1.keys()
-    lista2 = conjunto_fuzzy_2.keys()
+    # Preenche com grau de pertinencia igual a 0 as classes inexistentes nos conjuntos
+    for c in range(min_U,max_U+1):
+        chave = str(c)
+        if not chave in conjunto_fuzzy_1.keys():
+            conjunto_fuzzy_1[chave] = 0.0
+        if not chave in conjunto_fuzzy_2.keys():
+            conjunto_fuzzy_2[chave] = 0.0
 
-    if cmp(lista1.sort(), lista2.sort()) != 0:
-        msg += 'Os conjuntos nao sao iguais e nem compartilham do mesmo Universo de Discurso.'
+    for chave in conjunto_fuzzy_1:
+        if conjunto_fuzzy_1[chave] != conjunto_fuzzy_2[chave]:
+            if abs(conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave]) > grau_de_igualdade:
+                grau_de_igualdade = abs(conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave])
+
+    if grau_de_igualdade == 0.0:
+        msg += 'Os conjuntos sao iguais. '
     else:
-        # Se as classes dos 2 conjuntos sao iguais
-        if cmp(lista1.sort(), lista2.sort()) == 0:
-            for chave in conjunto_fuzzy_1:
-                if conjunto_fuzzy_1[chave] != conjunto_fuzzy_2[chave]:
-                    if (conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave]) > grau_de_igualdade:
-                        grau_de_igualdade = conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave]
+        msg += 'Os conjuntos nao sao iguais. '
 
-            if grau_de_igualdade == 0.0:
-                msg += 'Os conjuntos sao iguais. '
-            else:
-                msg += 'Os conjuntos nao sao iguais. '
-
-            msg += 'Grau de igualdade = ' + str(1 - grau_de_igualdade)
+    msg += 'Grau de igualdade = ' + str(1 - grau_de_igualdade)
 
     return msg
 
 
 def inclusao(conjunto_fuzzy_1, conjunto_fuzzy_2):
-    min_U = min(min(conjunto_fuzzy_1.keys()), min(conjunto_fuzzy_2.keys()))
-    max_U = max(max(conjunto_fuzzy_1.keys()), max(conjunto_fuzzy_2.keys()))
-    cardinalidade = int(max_U) - int(min_U)
+    global min_U, max_U
+
+    cardinalidade = float(max_U) - float(min_U) + 1.0
     msg = ''
     grau_de_inclusao = 0.0
+
     # Preenche com grau de pertinencia igual a 0 as classes inexistentes nos conjuntos
-    for chave in range(int(min_U),int(max_U)+1):
+    for c in range(min_U,max_U+1):
+        chave = str(c)
         if not chave in conjunto_fuzzy_1.keys():
             conjunto_fuzzy_1[chave] = 0.0
         if not chave in conjunto_fuzzy_2.keys():
@@ -154,16 +182,18 @@ def inclusao(conjunto_fuzzy_1, conjunto_fuzzy_2):
 
     for chave in conjunto_fuzzy_1:
         if conjunto_fuzzy_1[chave] <= conjunto_fuzzy_2[chave]:
-            grau_de_inclusao += 1
+            grau_de_inclusao += 1.0
         else:
-            grau_de_inclusao += 1 - ( conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave] )
+            grau_de_inclusao += 1.0 - ( conjunto_fuzzy_1[chave] - conjunto_fuzzy_2[chave] )
+
+    grau_de_inclusao = grau_de_inclusao / cardinalidade
 
     if grau_de_inclusao == 1.0:
         msg += 'O conjunto 1 esta incluido no conjunto 2. '
     else:
         msg += 'O conjunto 1 nao esta incluido no conjunto 2. '
 
-    msg += 'Grau de inclusao = ' + str( grau_de_inclusao * (1 / cardinalidade) )
+    msg += 'Grau de inclusao = ' + str(grau_de_inclusao)
 
     return msg
 
@@ -180,83 +210,68 @@ def le_conjunto():
     return conjunto_fuzzy
 
 
-def pertence_conjunto(grau_pertinencia, valor):
-	""
-	novo_grau_pertinencia = []
+def cria_universo_discurso():
+    global min_U, max_U
 
-	a = pertinencia_A(valor)
-	b = pertinencia_B(valor)
-	c = pertinencia_C(valor)
-	d = pertinencia_D(valor)
-	e = pertinencia_E(valor)
-
-	if a == 0:
-		novo_grau_pertinencia.append([])
-	else:
-		novo_grau_pertinencia.append(grau_pertinencia[0])
-
-	if b == 0:
-		novo_grau_pertinencia.append([])
-	else:
-		novo_grau_pertinencia.append(grau_pertinencia[1])
-
-	if c == 0:
-		novo_grau_pertinencia.append([])
-	else:
-		novo_grau_pertinencia.append(grau_pertinencia[2])
-
-	if d == 0:
-		novo_grau_pertinencia.append([])
-	else:
-		novo_grau_pertinencia.append(grau_pertinencia[3])
-
-	if e == 0:
-		novo_grau_pertinencia.append([])
-	else:
-		novo_grau_pertinencia.append(grau_pertinencia[4])
-
-	return novo_grau_pertinencia
+    conjunto = raw_input('Digite o primeiro e ultimo numero do Universo de Discurso (Ex.: 0/4): ')
+    conjunto = conjunto.replace(" ", "")
+    conjunto = conjunto.split("/")
+    min_U = int(conjunto[0])
+    max_U = int(conjunto[1])
 
 
-def desenha_grafico(grau_pertinencia):
-	if grau_pertinencia is None:
-		print 'Conjunto(s) vazio(s)!!'
-		return
+def funcao_triangular(universo_discurso, a, m, b):
+    conjunto_fuzzy = {}
+    for x in universo_discurso:
+        if x >= a and x < m:
+            conjunto_fuzzy[str(x)] = ((x-a)/(m-a))
+        elif x >= m and x <= b:
+            conjunto_fuzzy[str(x)] = ((b-x)/(b-m))
+        else:
+            conjunto_fuzzy[str(x)] = 0.0
 
-	legenda = []
-	for i,funcao in enumerate(grau_pertinencia):
-		if not funcao:
-			continue
-		elif i == 0:
-			cor = 'red'
-			label = 'F_A -> Muito Baixa'
-		elif i == 1:
-			cor = 'green'
-			label = 'F_B -> Baixa'
-		elif i == 2:
-			cor = 'blue'
-			label = 'F_C -> Media'
-		elif i == 3:
-			cor = 'orange'
-			label = 'F_D -> Alta'
-		elif i == 4:
-			cor = 'black'
-			label = 'F_E -> Muito Alta'
+    return conjunto_fuzzy
 
-		plt.plot(universo_discurso, funcao, color=cor)
-		legenda.append(mpatches.Patch(color=cor, label=label))
 
-	plt.legend(handles=legenda)
+def funcao_trapezoidal(universo_discurso, a, m, n, b):
+    conjunto_fuzzy = {}
+    for x in universo_discurso:
+        if x >= a and x < m:
+            conjunto_fuzzy[str(x)] = ((x-a)/(m-a))
+        elif x >= m and x < n:
+            conjunto_fuzzy[str(x)] = 1.0
+        elif x >= n and x <= b:
+            conjunto_fuzzy[str(x)] = ((b-x)/(b-n))
+        else:
+            conjunto_fuzzy[str(x)] = 0.0
 
-	plt.xticks(np.arange(min_U, max_U+2, 1.0))
-	plt.yticks(np.arange(0, 2.5, 1))
+    return conjunto_fuzzy
 
-	axes = plt.gca()
-	axes.set_title(titulo)
-	axes.set_xlabel('Temperatura')
-	axes.set_ylabel('Grau de pertinencia')
 
-	plt.show()
+def funcao_gaussiana(universo_discurso, m, gama):
+    conjunto_fuzzy = {}
+    for x in universo_discurso:
+        potencial = (x - m) / gama
+        math.pow(potencial, 2)
+        conjunto_fuzzy[str(x)] = math.exp(-1 * potencial)
+
+    return conjunto_fuzzy
+
+
+def impressao_questao_9(conjunto_fuzzy):
+    print "Altura = " + str(altura(conjunto_fuzzy))
+    print "Suporte = " + str(suporte(conjunto_fuzzy).keys())
+    print "Nucleo = " + str(nucleo(conjunto_fuzzy).keys())
+    print "Fronteiras = " + str(fronteiras(conjunto_fuzzy).keys())
+    print "Cardinalidade = " + str(cardinalidade(conjunto_fuzzy))
+    print "Pontos de crossover = " + str(pontos_de_crossover(conjunto_fuzzy))
+    print "Alfa-corte (= 0.0) = " + str(alfa_corte(conjunto_fuzzy, 0.0).keys())
+    print "Alfa-corte (= 0.2) = " + str(alfa_corte(conjunto_fuzzy, 0.2).keys())
+    print "Alfa-corte (= 0.4) = " + str(alfa_corte(conjunto_fuzzy, 0.4).keys())
+    print "Alfa-corte (= 0.6) = " + str(alfa_corte(conjunto_fuzzy, 0.6).keys())
+    print "Alfa-corte (= 0.8) = " + str(alfa_corte(conjunto_fuzzy, 0.8).keys())
+    print "Alfa-corte (= 1.0) = " + str(alfa_corte(conjunto_fuzzy, 1.0).keys())
+    print "\n"
 
 
 if __name__ == '__main__':
