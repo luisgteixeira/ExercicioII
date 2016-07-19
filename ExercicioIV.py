@@ -251,8 +251,8 @@ def funcao_trapezoidal(universo_discurso, a, m, n, b):
 def funcao_gaussiana(universo_discurso, m, gama):
     conjunto_fuzzy = {}
     for x in universo_discurso:
-        potencial = (x - m) / gama
-        math.pow(potencial, 2)
+        potencial = math.pow(x - m, 2)
+        potencial = potencial / math.pow(gama, 2)
         conjunto_fuzzy[str(x)] = math.exp(-1 * potencial)
 
     return conjunto_fuzzy
